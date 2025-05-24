@@ -5,23 +5,43 @@
   box-sizing: border-box;
 }
 
+/* Ocean Deep Theme Colors */
 :root {
-  --primary-color: #e86a33;
-  --secondary-color: #f5efe6;
-  --accent-color: #eadbc8;
-  --text-color: #333;
-  --light-text-color: #666;
-  --white: #fff;
-  --correct-bg: #e6fff0;
-  --correct-border: #a3f0c4;
-  --correct-text: #28a745;
-  --incorrect-bg: #fff0f0;
-  --incorrect-border: #ffbdbd;
-  --incorrect-text: #dc3545;
+  --deep-ocean-bg: #0a2647; /* Very dark blue for the body background */
+  --container-bg: #1f4a6f; /* Darker blue for the main quiz container */
+  --primary-blue: #2196f3; /* A strong, clear blue for main elements like headings and buttons */
+  --accent-teal: #8edce6; /* A light, vibrant teal for accents, borders, and button hovers */
+  --light-text: #e0f2f7; /* Very light blue-gray for most text on dark backgrounds */
+  --button-default-bg: #2b587d; /* A slightly muted blue for default answer buttons */
+  --button-hover-bg: #407bae; /* A slightly lighter blue for answer button hover */
+  --progress-bar-track: rgba(
+    255,
+    255,
+    255,
+    0.1
+  ); /* Subtle light track for the progress bar */
+  --box-shadow-color: rgba(
+    0,
+    0,
+    0,
+    0.4
+  ); /* Darker shadow for contrast on light items */
+
+  /* Keeping correct/incorrect colors distinct for clear feedback */
+  --correct-bg: #b9fbc0; /* Light, fresh green for correct answers */
+  --correct-border: #80ed99;
+  --correct-text: #2d6a4f; /* Darker green for correct text */
+
+  --incorrect-bg: #ffc0cb; /* Soft pink/red for incorrect answers */
+  --incorrect-border: #ff8f9b;
+  --incorrect-text: #d80032; /* Darker red for incorrect text */
+
+  --timer-color: #ffd700; /* Gold color for the timer */
+  --timer-warning-color: #dc3545; /* A strong red for low time */
 }
 
 body {
-  background-color: var(--secondary-color);
+  background-color: var(--deep-ocean-bg);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -31,9 +51,9 @@ body {
 }
 
 .container {
-  background-color: var(--white);
+  background-color: var(--container-bg);
   border-radius: 1rem;
-  box-shadow: 0 10px 30px rgb(0, 0, 0, 0.1);
+  box-shadow: 0 10px 30px var(--box-shadow-color);
   width: 100%;
   max-width: 600px;
   overflow: hidden;
@@ -53,12 +73,12 @@ body {
 
 /* START SCREEN */
 #start-screen h1 {
-  color: var(--primary-color);
+  color: var(--primary-blue);
   margin-bottom: 20px;
   font-size: 2.5rem;
 }
 #start-screen p {
-  color: var(--light-text-color);
+  color: var(--light-text);
   margin-bottom: 30px;
   font-size: 1.1rem;
 }
@@ -67,8 +87,33 @@ body {
   margin-bottom: 2rem;
 }
 
+.timer-container {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--timer-color); /* Default timer color */
+  margin-top: 15px; /* Spacing from quiz-info */
+  transition: color 0.3s ease-in-out; /* Smooth transition for color change */
+}
+
+/* when the timer is low */
+.timer-container.warning {
+  color: var(--timer-warning-color);
+  animation: pulse-timer 1s infinite alternate; /* Optional: adds a pulsing effect */
+}
+
+@keyframes pulse-timer {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
 #question-text {
-  color: var(--text-color);
+  color: var(--light-text);
   font-size: 1.5rem;
   margin-bottom: 1rem;
   line-height: 1.4;
@@ -77,7 +122,7 @@ body {
 .quiz-info {
   display: flex;
   justify-content: space-between;
-  color: var(--light-text-color);
+  color: var(--light-text);
   margin-bottom: 10px;
 }
 
@@ -89,9 +134,9 @@ body {
 }
 
 .answer-btn {
-  background-color: #f8f0e5;
-  color: var(--text-color);
-  border: 2px solid var(--accent-color);
+  background-color: var(--button-default-bg);
+  color: var(--light-text);
+  border: 2px solid var(--accent-teal);
   border-radius: 10px;
   padding: 1rem;
   cursor: pointer;
@@ -100,8 +145,8 @@ body {
 }
 
 .answer-btn:hover {
-  background-color: var(--accent-color);
-  border-color: #dac0ae;
+  background-color: var(--button-hover-bg);
+  border-color: var(--accent-teal);
 }
 
 .answer-btn.correct {
@@ -118,7 +163,7 @@ body {
 
 .progress-bar {
   height: 10px;
-  background-color: #f8f0e5;
+  background-color: var(--progress-bar-track);
   border-radius: 5px;
   overflow: hidden;
   margin-top: 20px;
@@ -126,19 +171,20 @@ body {
 
 .progress {
   height: 100%;
-  background-color: var(--primary-color);
+  background-color: var(--primary-blue);
   width: 0%;
   transition: width 0.3s ease;
 }
 
 /* RESULT SCREEN */
-#result-screen {
-  color: var(--primary-color);
+#result-screen h1 {
+  color: var(--primary-blue);
   margin-bottom: 30px;
 }
 
 .result-info {
-  background-color: #f8f0e5;
+  background-color: var(--button-default-bg);
+  color: var(--light-text);
   border-radius: 10px;
   padding: 20px;
   margin-bottom: 20px;
@@ -147,11 +193,11 @@ body {
 .result-message {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--primary-color);
+  color: var(--primary-blue);
 }
 
 button {
-  background-color: var(--primary-color);
+  background-color: var(--primary-blue);
   color: white;
   border: none;
   border-radius: 10px;
@@ -161,14 +207,12 @@ button {
 }
 
 button:hover {
-  background-color: #d45b28;
-  transition: width 0.3s ease;
+  background-color: #1976d2;
+  transition: background-color 0.3s ease;
 }
 
 /* RESPONSIVE DESIGN */
 @media (max-width: 500px) {
-  /* When we hit 500px and below, implement the styles below */
-
   .screen {
     padding: 1rem;
   }

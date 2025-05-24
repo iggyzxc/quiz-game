@@ -13,6 +13,8 @@ const maxScoreSpan = document.getElementById('max-score');
 const resultMessage = document.getElementById('result-message');
 const restartButton = document.getElementById('restart-btn');
 const progressBarIndicator = document.getElementById('progress-indicator');
+const timerContainer = document.querySelector('.timer-container'); // Change timerElement to target the OUTER div (.timer-container)
+const timerDisplaySpan = document.getElementById('timer'); // Keep a reference to the span inside it for updating its text content
 
 // Quiz questions
 const quizQuestions = [
@@ -66,7 +68,10 @@ const quizQuestions = [
 // Quiz State Variables
 let currentQuestionIndex = 0;
 let score = 0;
-let answersDisabled = false;
+let answersDisabled = false; // Prevents multiple clicks on answers
+let timePerQuestion = 10; // Default time in seconds for each question
+let timeLeft = timePerQuestion; // Remaining time for the current question
+let timerInterval; // stores the interval ID for clearing
 
 totalQuestionsSpan.textContent = quizQuestions.length;
 maxScoreSpan.textContent = quizQuestions.length;
@@ -80,6 +85,7 @@ function startQuiz() {
   currentQuestionIndex = 0;
   score = 0;
   scoreSpan.textContent = 0;
+  clearInterval(timerInterval); // Ensure any lingering timer is cleared on start
 
   startScreen.classList.remove('active');
   quizScreen.classList.add('active');
@@ -87,9 +93,55 @@ function startQuiz() {
   showQuestion();
 }
 
+function handleAnswerFeedbackAndProceed(
+  isCorrectlyAnswered,
+  selectedButton = null,
+) {
+  if (answersDisabled) return; // Prevent multiple clicks while processing
+
+  answersDisabled = true; // Disable answer buttons immediately after an answer is selected
+
+  // Highlight correct/incorrect answers
+  // If selectedButton is null (timer ran out), skip highlighting.
+  if (selectedButton !== null) {
+    Array.from(answersContainer.children).forEach((button) => {
+      if (button.dataset.correct === 'true') {
+        button.classList.add('correct');
+      } else if (button === selectedButton && !isCorrectlyAnswered) {
+        // Only add 'incorrect' class if the selected button was actually wrong
+        button.classList.add('incorrect');
+      }
+    });
+  }
+
+  if (isCorrectlyAnswered) {
+    score++;
+    scoreSpan.textContent = score;
+  }
+
+  clearInterval(timerInterval); // Stop the timer when an answer is selected
+
+  setTimeout(() => {
+    timerContainer.classList.remove('warning'); // Ensure the warning class is removed when proceeding
+
+    currentQuestionIndex++;
+
+    // check if there are more questions or if the quiz is over
+    if (currentQuestionIndex < quizQuestions.length) {
+      showQuestion();
+    } else {
+      // Quiz is over, fill the progress bar to 100% before showing results
+      progressBarIndicator.style.width = '100%'; // Set the progress bar to 100%
+      setTimeout(() => {
+        showResult();
+      }, 500); // Delay to allow the progress bar to fill before showing results
+    }
+  }, 1000); // Delay before moving to the next question or result screen
+}
+
 function showQuestion() {
   // reset state
-  answersDisabled = false;
+  answersDisabled = false; // Reenable answer buttons for the new question
 
   const currentQuestion = quizQuestions[currentQuestionIndex];
 
@@ -102,6 +154,38 @@ function showQuestion() {
   questionText.textContent = currentQuestion.question;
 
   answersContainer.innerHTML = '';
+
+  // Timer setup for each question
+  timeLeft = timePerQuestion; // Reset time for the new question
+
+  // Update text content on the SPAN
+  timerDisplaySpan.textContent = timeLeft;
+
+  // Apply class removal to the CONTAINER
+  timerContainer.classList.remove('warning');
+
+  clearInterval(timerInterval); // Clear any existing timer to prevent multiple timers
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+
+    // Update text content on the SPAN
+    timerDisplaySpan.textContent = timeLeft;
+
+    // change timer color
+    if (timeLeft <= 5) {
+      timerContainer.classList.add('warning'); // Add warning class if 5 seconds or less
+    } else {
+      timerContainer.classList.remove('warning'); // Ensure warning class is removed if time goes above 5 (e.g., on restart or if timePerQuestion was initially less than 5)
+    }
+
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval); // Stop the timer when it reaches zero
+      // Time's up! Automatically proceed to the next question
+      // We pass 'false' to indicate that the answer was not selected
+      handleAnswerFeedbackAndProceed(false, null); // Pass false for correctness, null for selectedButton
+    }
+  }, 1000); // Update every second
 
   currentQuestion.answers.forEach((answer) => {
     const answerButton = document.createElement('button');
@@ -119,41 +203,13 @@ function showQuestion() {
 
 function selectAnswer(event) {
   // optimization check
+  // This check is important to prevent re-processing clicks while feedback is shown
   if (answersDisabled) return;
-
-  answersDisabled = true;
 
   const selectedButton = event.target;
   const isCorrect = selectedButton.dataset.correct === 'true';
 
-  // Array.from is used to convert the HTMLCollection to an array so we can use forEach
-  Array.from(answersContainer.children).forEach((button) => {
-    if (button.dataset.correct === 'true') {
-      button.classList.add('correct');
-    } else if (button === selectedButton) {
-      button.classList.add('incorrect');
-    }
-  });
-
-  if (isCorrect) {
-    score++;
-    scoreSpan.textContent = score;
-  }
-
-  setTimeout(() => {
-    currentQuestionIndex++;
-
-    // check if there are more questions or if the quiz is over
-    if (currentQuestionIndex < quizQuestions.length) {
-      showQuestion();
-    } else {
-      // Quiz is over, fill the progress bar to 100% before showing results
-      progressBarIndicator.style.width = '100%'; // Set the progress bar to 100%
-      setTimeout(() => {
-        showResult();
-      }, 500); // Delay to allow the progress bar to fill before showing results
-    }
-  }, 1000); // Delay before moving to the next question or result screen
+  handleAnswerFeedbackAndProceed(isCorrect, selectedButton);
 }
 
 function showResult() {
@@ -191,5 +247,8 @@ function showResult() {
 
 function restartQuiz() {
   resultScreen.classList.remove('active');
+  clearInterval(timerInterval);
+  // Apply class removal to the CONTAINER
+  timerContainer.classList.remove('warning');
   startQuiz();
 }
